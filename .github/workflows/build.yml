@@ -240,7 +240,11 @@ jobs:
             echo "ERROR: State files were modified on remote — aborting to avoid conflict."
             exit 1
           fi
+
+          # Stash our state file changes, rebase onto latest remote, then re-apply
+          git stash
           git rebase origin/main
+          git stash pop
 
           git add upstream-state.json sequence.txt
           git commit -m "Build ${{ needs.compute-tag.outputs.tag }}: track upstream state" || exit 0
