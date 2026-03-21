@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: build
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -152,6 +152,14 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/eugr/spark-vllm-docker.git /tmp/spark-vllm-docker
 
+      - name: Detect upstream base image
+        id: base
+        run: |
+          # Extract the first FROM image from the upstream Dockerfile
+          BASE_IMAGE=$(grep -m1 '^FROM ' /tmp/spark-vllm-docker/Dockerfile | awk '{print $2}')
+          echo "image=${BASE_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "Detected base image: ${BASE_IMAGE}"
+
       - name: Build vllm-node image
         run: |
           cd /tmp/spark-vllm-docker
@@ -162,7 +170,7 @@ jobs:
         run: |
           docker build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
             --build-arg SOURCE_IMAGE=vllm-node \
-            --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3 \
+            --build-arg BASE_IMAGE=${{ steps.base.outputs.image }} \
             -t ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
             $GITHUB_WORKSPACE
 
@@ -185,16 +193,10 @@ jobs:
           docker push "${IMAGE}:${DATE_TAG}"
           docker push "${IMAGE}:latest"
 
-      - name: Prune after variant (keep base image cached for next variant)
+      - name: Prune after variant
         if: always()
         run: |
-          # Remove built/intermediate images but keep the base image for the next variant
-          docker rmi vllm-node 2>/dev/null || true
-          docker rmi "ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }}" 2>/dev/null || true
-          docker rmi "ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.date_tag }}" 2>/dev/null || true
-          docker rmi "ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:latest" 2>/dev/null || true
-          docker builder prune -af
-          docker image prune -f
+          docker system prune -af
           df -h /
 
   # ──────────────────────────────────────────────────────────────────────
