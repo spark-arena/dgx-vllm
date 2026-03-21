@@ -1,0 +1,52 @@
+ARG SOURCE_IMAGE=vllm-node
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3
+
+# === Stage 1: Split dist-packages ===
+FROM ${SOURCE_IMAGE} AS splitter
+COPY stages/directory_split2.sh /tmp/directory_split2.sh
+RUN bash /tmp/directory_split2.sh \
+      /usr/local/lib/python3.12/dist-packages 4 \
+      --exclude "transformers*"
+
+# === Stage 2: Re-layer onto clean base ===
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    VLLM_BASE_DIR=/workspace/vllm \
+    PIP_CACHE_DIR=/root/.cache/pip \
+    UV_CACHE_DIR=/root/.cache/uv \
+    UV_SYSTEM_PYTHON=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1 \
+    UV_LINK_MODE=copy
+
+# Replicate runner's APT + uv setup (matches upstream Dockerfile runner stage)
+RUN apt update && \
+    apt install -y --no-install-recommends curl vim git libxcb1 && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install uv && pip uninstall -y flash-attn
+
+WORKDIR /workspace/vllm
+
+# Copy split dist-packages as separate layers (each <10GB)
+COPY --from=splitter /usr/local/lib/python3.12/dist-packages-1/ /usr/local/lib/python3.12/dist-packages/
+COPY --from=splitter /usr/local/lib/python3.12/dist-packages-2/ /usr/local/lib/python3.12/dist-packages/
+COPY --from=splitter /usr/local/lib/python3.12/dist-packages-3/ /usr/local/lib/python3.12/dist-packages/
+COPY --from=splitter /usr/local/lib/python3.12/dist-packages-4/ /usr/local/lib/python3.12/dist-packages/
+
+# Transformers in its own layer (better sharing between tf4/tf5 variants)
+COPY --from=splitter --parents /usr/local/lib/python3.12/dist-packages/transformers* /
+
+# Binaries (vllm CLI, ray, uv, etc.)
+COPY --from=splitter /usr/local/bin/ /usr/local/bin/
+
+# Tiktoken data files
+COPY --from=splitter /workspace/vllm/tiktoken_encodings/ /workspace/vllm/tiktoken_encodings/
+
+# Runtime environment (matches upstream Dockerfile lines 264-271)
+ARG TORCH_CUDA_ARCH_LIST="12.1a"
+ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
+    FLASHINFER_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
+    TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas \
+    TIKTOKEN_ENCODINGS_BASE=/workspace/vllm/tiktoken_encodings \
+    PATH=/workspace/vllm:$PATH

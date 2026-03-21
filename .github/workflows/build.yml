@@ -1,0 +1,223 @@
+name: Build and Push DGX vLLM Containers
+
+on:
+  schedule:
+    - cron: "30 * * * *"  # Every hour at :30 — polls upstream for changes
+  workflow_dispatch:          # Manual trigger (always forces build)
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────
+  # Job 1: Check upstream for changes (lightweight, runs on every trigger)
+  # ──────────────────────────────────────────────────────────────────────
+  check-upstream:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+      main_sha: ${{ steps.fetch.outputs.main_sha }}
+      latest_release: ${{ steps.fetch.outputs.latest_release }}
+      known_tags: ${{ steps.fetch.outputs.known_tags }}
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Read stored upstream state
+        id: stored
+        run: |
+          echo "main_sha=$(jq -r '.main_sha' upstream-state.json)" >> "$GITHUB_OUTPUT"
+          echo "latest_release=$(jq -r '.latest_release' upstream-state.json)" >> "$GITHUB_OUTPUT"
+          echo "known_tags=$(jq -c '.known_tags' upstream-state.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch current upstream state
+        id: fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Main branch HEAD SHA
+          MAIN_SHA=$(gh api repos/eugr/spark-vllm-docker/git/ref/heads/main --jq '.object.sha' 2>/dev/null || echo "")
+          echo "main_sha=${MAIN_SHA}" >> "$GITHUB_OUTPUT"
+
+          # Latest release tag
+          LATEST_RELEASE=$(gh api repos/eugr/spark-vllm-docker/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+          echo "latest_release=${LATEST_RELEASE}" >> "$GITHUB_OUTPUT"
+
+          # All tags (as JSON array)
+          KNOWN_TAGS=$(gh api repos/eugr/spark-vllm-docker/tags --paginate --jq '[.[].name]' 2>/dev/null || echo "[]")
+          echo "known_tags=${KNOWN_TAGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Compare states
+        id: compare
+        run: |
+          CHANGED="false"
+
+          # workflow_dispatch always forces a build
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CHANGED="true"
+            echo "Forced build via workflow_dispatch"
+          fi
+
+          # Check main SHA
+          if [ "${{ steps.stored.outputs.main_sha }}" != "${{ steps.fetch.outputs.main_sha }}" ]; then
+            CHANGED="true"
+            echo "Main SHA changed: ${{ steps.stored.outputs.main_sha }} -> ${{ steps.fetch.outputs.main_sha }}"
+          fi
+
+          # Check latest release
+          if [ "${{ steps.stored.outputs.latest_release }}" != "${{ steps.fetch.outputs.latest_release }}" ]; then
+            CHANGED="true"
+            echo "Latest release changed: ${{ steps.stored.outputs.latest_release }} -> ${{ steps.fetch.outputs.latest_release }}"
+          fi
+
+          # Check tags
+          if [ '${{ steps.stored.outputs.known_tags }}' != '${{ steps.fetch.outputs.known_tags }}' ]; then
+            CHANGED="true"
+            echo "Tags changed"
+          fi
+
+          echo "changed=${CHANGED}" >> "$GITHUB_OUTPUT"
+          echo "Result: changed=${CHANGED}"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Job 2: Compute the next YYYYMMDDNN tag
+  # ──────────────────────────────────────────────────────────────────────
+  compute-tag:
+    runs-on: ubuntu-latest
+    needs: check-upstream
+    if: needs.check-upstream.outputs.changed == 'true'
+    outputs:
+      tag: ${{ steps.compute.outputs.tag }}
+      date_tag: ${{ steps.compute.outputs.date_tag }}
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Compute next tag
+        id: compute
+        run: |
+          TODAY=$(TZ=US/Pacific date +%Y%m%d)
+          LAST=$(cat sequence.txt | tr -d '[:space:]')
+          LAST_DATE=${LAST:0:8}
+          LAST_NN=${LAST:8:2}
+
+          if [ "$LAST_DATE" = "$TODAY" ]; then
+            NEXT_NN=$(printf '%02d' $((10#$LAST_NN + 1)))
+          else
+            NEXT_NN="01"
+          fi
+
+          TAG="${TODAY}${NEXT_NN}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "date_tag=${TODAY}" >> "$GITHUB_OUTPUT"
+          echo "Next tag: ${TAG}"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Job 3: Build each variant (sequential to manage disk space)
+  # ──────────────────────────────────────────────────────────────────────
+  build-variant:
+    runs-on: ubuntu-24.04-arm
+    needs: compute-tag
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - name: nightly
+            suffix: ""
+            build_flags: ""
+          - name: nightly-tf5
+            suffix: "-tf5"
+            build_flags: "--pre-transformers"
+          - name: nightly-mxfp4
+            suffix: "-mxfp4"
+            build_flags: "--exp-mxfp4"
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/boost /usr/share/swift /opt/hostedtoolcache
+          sudo docker system prune -af
+          df -h /
+
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Clone spark-vllm-docker
+        run: |
+          git clone --depth 1 https://github.com/eugr/spark-vllm-docker.git /tmp/spark-vllm-docker
+
+      - name: Build vllm-node image
+        run: |
+          cd /tmp/spark-vllm-docker
+          bash build-and-copy.sh --tag vllm-node ${{ matrix.build_flags }}
+        timeout-minutes: 120
+
+      - name: Re-layer image (split dist-packages)
+        run: |
+          docker build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
+            --build-arg SOURCE_IMAGE=vllm-node \
+            --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3 \
+            -t ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
+            $GITHUB_WORKSPACE
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and push
+        run: |
+          IMAGE="ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}"
+          FULL_TAG="${{ needs.compute-tag.outputs.tag }}"
+          DATE_TAG="${{ needs.compute-tag.outputs.date_tag }}"
+
+          docker tag "${IMAGE}:${FULL_TAG}" "${IMAGE}:${DATE_TAG}"
+          docker tag "${IMAGE}:${FULL_TAG}" "${IMAGE}:latest"
+          docker push "${IMAGE}:${FULL_TAG}"
+          docker push "${IMAGE}:${DATE_TAG}"
+          docker push "${IMAGE}:latest"
+
+      - name: Prune after variant
+        if: always()
+        run: docker system prune -af
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Job 4: Update upstream state and sequence after successful builds
+  # ──────────────────────────────────────────────────────────────────────
+  update-state:
+    runs-on: ubuntu-latest
+    needs: [check-upstream, compute-tag, build-variant]
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Update state files
+        run: |
+          NEW_TAG="${{ needs.compute-tag.outputs.tag }}"
+
+          # Write upstream-state.json
+          cat > upstream-state.json << 'STATEEOF'
+          {
+            "main_sha": "${{ needs.check-upstream.outputs.main_sha }}",
+            "latest_release": "${{ needs.check-upstream.outputs.latest_release }}",
+            "known_tags": ${{ needs.check-upstream.outputs.known_tags }}
+          }
+          STATEEOF
+
+          # Clean up indentation from heredoc
+          sed -i 's/^          //' upstream-state.json
+
+          # Write sequence.txt
+          echo "${NEW_TAG}" > sequence.txt
+
+      - name: Commit and push state
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add upstream-state.json sequence.txt
+          git commit -m "Build ${{ needs.compute-tag.outputs.tag }}: track upstream state" || exit 0
+          git push
