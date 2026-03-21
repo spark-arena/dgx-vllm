@@ -232,6 +232,16 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
+          # Pull latest, but fail if someone else changed our state files
+          git fetch origin main
+          CHANGED_FILES=$(git diff --name-only HEAD..origin/main)
+          if echo "$CHANGED_FILES" | grep -qE '^(upstream-state\.json|sequence\.txt)$'; then
+            echo "ERROR: State files were modified on remote — aborting to avoid conflict."
+            exit 1
+          fi
+          git rebase origin/main
+
           git add upstream-state.json sequence.txt
           git commit -m "Build ${{ needs.compute-tag.outputs.tag }}: track upstream state" || exit 0
           git push
