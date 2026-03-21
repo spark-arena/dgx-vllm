@@ -5,6 +5,9 @@ on:
     - cron: "30 * * * *"  # Every hour at :30 — polls upstream for changes
   workflow_dispatch:          # Manual trigger (always forces build)
 
+env:
+  IMAGE_BASE: ghcr.io/spark-arena/dgx-vllm-eugr
+
 concurrency:
   group: build
   cancel-in-progress: false
@@ -171,7 +174,7 @@ jobs:
           docker build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
             --build-arg SOURCE_IMAGE=vllm-node \
             --build-arg BASE_IMAGE=${{ steps.base.outputs.image }} \
-            -t ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
+            -t ${{ env.IMAGE_BASE }}-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
             $GITHUB_WORKSPACE
 
       - name: Login to GHCR
@@ -183,7 +186,7 @@ jobs:
 
       - name: Tag and push
         run: |
-          IMAGE="ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}"
+          IMAGE="${{ env.IMAGE_BASE }}-${{ matrix.name }}"
           FULL_TAG="${{ needs.compute-tag.outputs.tag }}"
           DATE_TAG="${{ needs.compute-tag.outputs.date_tag }}"
 
@@ -192,12 +195,6 @@ jobs:
           docker push "${IMAGE}:${FULL_TAG}"
           docker push "${IMAGE}:${DATE_TAG}"
           docker push "${IMAGE}:latest"
-
-      - name: Prune after variant
-        if: always()
-        run: |
-          docker system prune -af
-          df -h /
 
   # ──────────────────────────────────────────────────────────────────────
   # Job 4: Update upstream state and sequence after successful builds
