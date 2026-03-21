@@ -5,9 +5,6 @@ on:
     - cron: "30 * * * *"  # Every hour at :30 — polls upstream for changes
   workflow_dispatch:          # Manual trigger (always forces build)
 
-env:
-  DOCKER_BUILDKIT: 1
-
 permissions:
   contents: write
   packages: write
@@ -132,10 +129,10 @@ jobs:
             build_flags: ""
           - name: nightly-tf5
             suffix: "-tf5"
-            build_flags: "--pre-transformers"
-          - name: nightly-mxfp4
-            suffix: "-mxfp4"
-            build_flags: "--exp-mxfp4"
+            build_flags: "-tf5"
+    #          - name: nightly-mxfp4
+    #            suffix: "-mxfp4"
+    #            build_flags: "--exp-mxfp4"
     steps:
       - name: Free disk space
         run: |
@@ -159,9 +156,10 @@ jobs:
 
       - name: Re-layer image (split dist-packages)
         run: |
-          docker build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
+          docker buildx build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
             --build-arg SOURCE_IMAGE=vllm-node \
             --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3 \
+            --load \
             -t ghcr.io/spark-arena/dgx-vllm-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
             $GITHUB_WORKSPACE
 
@@ -201,7 +199,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────
   update-state:
     runs-on: ubuntu-latest
-    needs: [check-upstream, compute-tag, build-variant]
+    needs: [ check-upstream, compute-tag, build-variant ]
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4

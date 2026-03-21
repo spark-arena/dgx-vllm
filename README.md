@@ -5,11 +5,10 @@ for GHCR compatibility (10GB layer limit) and pushed to `ghcr.io/spark-arena/`.
 
 ## Container Variants
 
-| Image                                        | Build Flags          | Description               |
-|----------------------------------------------|----------------------|---------------------------|
-| `ghcr.io/spark-arena/dgx-vllm-nightly`       | _(none)_             | Standard vLLM build       |
-| `ghcr.io/spark-arena/dgx-vllm-nightly-tf5`   | `--pre-transformers` | Transformers >=5.0        |
-| `ghcr.io/spark-arena/dgx-vllm-nightly-mxfp4` | `--exp-mxfp4`        | Native MXFP4 quantization |
+| Image                                      | Build Flags | Description         |
+|--------------------------------------------|-------------|---------------------|
+| `ghcr.io/spark-arena/dgx-vllm-nightly`     | _(none)_    | Standard vLLM build |
+| `ghcr.io/spark-arena/dgx-vllm-nightly-tf5` | `-tf5`      | Transformers >=5.0  |
 
 ## Tagging Scheme
 
