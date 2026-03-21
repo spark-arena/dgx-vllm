@@ -5,6 +5,10 @@ on:
     - cron: "30 * * * *"  # Every hour at :30 — polls upstream for changes
   workflow_dispatch:          # Manual trigger (always forces build)
 
+concurrency:
+  group: build
+  cancel-in-progress: true
+
 permissions:
   contents: write
   packages: write
