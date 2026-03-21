@@ -129,7 +129,7 @@ jobs:
             build_flags: ""
           - name: nightly-tf5
             suffix: "-tf5"
-            build_flags: "-tf5"
+            build_flags: "--tf5"
     #          - name: nightly-mxfp4
     #            suffix: "-mxfp4"
     #            build_flags: "--exp-mxfp4"
