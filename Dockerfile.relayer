@@ -41,8 +41,8 @@ COPY --from=splitter --parents /usr/local/lib/python3.12/dist-packages/transform
 # Binaries (vllm CLI, ray, uv, etc.)
 COPY --from=splitter /usr/local/bin/ /usr/local/bin/
 
-# Tiktoken data files
-COPY --from=splitter /workspace/vllm/tiktoken_encodings/ /workspace/vllm/tiktoken_encodings/
+# Workspace files (tiktoken encodings, etc.)
+COPY --from=splitter /workspace/ /workspace/
 
 # Runtime environment (matches upstream Dockerfile lines 264-271)
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
