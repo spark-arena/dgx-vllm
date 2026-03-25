@@ -181,9 +181,9 @@ jobs:
             echo "flashinfer_hash=" >> "$GITHUB_OUTPUT"
           else
             # Parse YAML fields with grep+sed (no yq dependency needed)
-            REPO_COMMIT=$(echo "$RAW" | grep -E '^\s*commit:' | head -1 | sed "s/.*build_build_script_commit:\s*['\"]*//" | sed "s/['\"].*//")
-            VLLM_HASH=$(echo "$RAW" | grep -E '^\s*vllm_hash:' | head -1 | sed "s/.*build_vllm_commit:\s*['\"]*//" | sed "s/['\"].*//")
-            FLASHINFER_HASH=$(echo "$RAW" | grep -E '^\s*flashinfer_hash:' | head -1 | sed "s/.*build_flashinfer_commit:\s*['\"]*//" | sed "s/['\"].*//")
+            REPO_COMMIT=$(echo "$RAW" | grep -E '^\s*build_script_commit:' | head -1 | sed 's/^[^:]*:\s*//' | tr -d "\"' ")
+            VLLM_HASH=$(echo "$RAW" | grep -E '^\s*vllm_commit:' | head -1 | sed 's/^[^:]*:\s*//' | tr -d "\"' ")
+            FLASHINFER_HASH=$(echo "$RAW" | grep -E '^\s*flashinfer_commit:' | head -1 | sed 's/^[^:]*:\s*//' | tr -d "\"' ")
             echo "repo_commit=${REPO_COMMIT}" >> "$GITHUB_OUTPUT"
             echo "vllm_hash=${VLLM_HASH}" >> "$GITHUB_OUTPUT"
             echo "flashinfer_hash=${FLASHINFER_HASH}" >> "$GITHUB_OUTPUT"
