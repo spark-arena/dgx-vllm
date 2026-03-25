@@ -169,11 +169,36 @@ jobs:
           bash build-and-copy.sh --tag vllm-node ${{ matrix.build_flags }}
         timeout-minutes: 120
 
+      - name: Extract build metadata from vllm-node
+        id: metadata
+        run: |
+          # Extract build-metadata.yaml from the freshly built image
+          RAW=$(docker run --rm vllm-node cat /workspace/build-metadata.yaml 2>/dev/null || echo "")
+          if [ -z "$RAW" ]; then
+            echo "WARNING: No build-metadata.yaml found in vllm-node"
+            echo "repo_commit=" >> "$GITHUB_OUTPUT"
+            echo "vllm_hash=" >> "$GITHUB_OUTPUT"
+            echo "flashinfer_hash=" >> "$GITHUB_OUTPUT"
+          else
+            # Parse YAML fields with grep+sed (no yq dependency needed)
+            REPO_COMMIT=$(echo "$RAW" | grep -E '^\s*commit:' | head -1 | sed "s/.*commit:\s*['\"]*//" | sed "s/['\"].*//")
+            VLLM_HASH=$(echo "$RAW" | grep -E '^\s*vllm_hash:' | head -1 | sed "s/.*vllm_hash:\s*['\"]*//" | sed "s/['\"].*//")
+            FLASHINFER_HASH=$(echo "$RAW" | grep -E '^\s*flashinfer_hash:' | head -1 | sed "s/.*flashinfer_hash:\s*['\"]*//" | sed "s/['\"].*//")
+            echo "repo_commit=${REPO_COMMIT}" >> "$GITHUB_OUTPUT"
+            echo "vllm_hash=${VLLM_HASH}" >> "$GITHUB_OUTPUT"
+            echo "flashinfer_hash=${FLASHINFER_HASH}" >> "$GITHUB_OUTPUT"
+            echo "Extracted: commit=${REPO_COMMIT} vllm=${VLLM_HASH} flashinfer=${FLASHINFER_HASH}"
+          fi
+
       - name: Re-layer image (split dist-packages)
         run: |
           docker build -f $GITHUB_WORKSPACE/Dockerfile.relayer \
             --build-arg SOURCE_IMAGE=vllm-node \
             --build-arg BASE_IMAGE=${{ steps.base.outputs.image }} \
+            --build-arg SPARKRUN_REPO_COMMIT=${{ steps.metadata.outputs.repo_commit }} \
+            --build-arg SPARKRUN_VLLM_HASH=${{ steps.metadata.outputs.vllm_hash }} \
+            --build-arg SPARKRUN_FLASHINFER_HASH=${{ steps.metadata.outputs.flashinfer_hash }} \
+            --build-arg SPARKRUN_BUILD_FLAGS=${{ matrix.build_flags }} \
             -t ${{ env.IMAGE_BASE }}-${{ matrix.name }}:${{ needs.compute-tag.outputs.tag }} \
             $GITHUB_WORKSPACE
 
@@ -196,6 +221,28 @@ jobs:
           docker push "${IMAGE}:${DATE_TAG}"
           docker push "${IMAGE}:latest"
 
+      - name: Save build-index entry
+        run: |
+          mkdir -p /tmp/build-index
+          cat > /tmp/build-index/${{ matrix.name }}.json << EOF
+          {
+            "tag": "${{ needs.compute-tag.outputs.tag }}",
+            "variant": "${{ matrix.name }}",
+            "repo_commit": "${{ steps.metadata.outputs.repo_commit }}",
+            "vllm_hash": "${{ steps.metadata.outputs.vllm_hash }}",
+            "flashinfer_hash": "${{ steps.metadata.outputs.flashinfer_hash }}",
+            "build_flags": "${{ matrix.build_flags }}",
+            "pushed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          sed -i 's/^          //' /tmp/build-index/${{ matrix.name }}.json
+
+      - name: Upload build-index entry
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-index-${{ matrix.name }}
+          path: /tmp/build-index/${{ matrix.name }}.json
+
   # ──────────────────────────────────────────────────────────────────────
   # Job 4: Update upstream state and sequence after successful builds
   # ──────────────────────────────────────────────────────────────────────
@@ -205,6 +252,36 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
+
+      - name: Download build-index entries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-index-*
+          path: /tmp/build-index-entries
+          merge-multiple: true
+
+      - name: Update build-index.json
+        run: |
+          # Initialize build-index.json if it doesn't exist
+          if [ ! -f build-index.json ]; then
+            echo '[]' > build-index.json
+          fi
+
+          # Append new entries from each variant
+          for entry_file in /tmp/build-index-entries/*.json; do
+            if [ -f "$entry_file" ]; then
+              # Merge entry into the existing array
+              jq --slurpfile new "$entry_file" '. + $new' build-index.json > build-index.tmp
+              mv build-index.tmp build-index.json
+              echo "Added entry from $entry_file"
+            fi
+          done
+
+          # Keep only the last 100 entries to bound file size
+          jq '.[-100:]' build-index.json > build-index.tmp
+          mv build-index.tmp build-index.json
+
+          echo "build-index.json now has $(jq length build-index.json) entries"
 
       - name: Update state files
         run: |
@@ -233,7 +310,7 @@ jobs:
           # Pull latest, but fail if someone else changed our state files
           git fetch origin main
           CHANGED_FILES=$(git diff --name-only HEAD..origin/main)
-          if echo "$CHANGED_FILES" | grep -qE '^(upstream-state\.json|sequence\.txt)$'; then
+          if echo "$CHANGED_FILES" | grep -qE '^(upstream-state\.json|sequence\.txt|build-index\.json)$'; then
             echo "ERROR: State files were modified on remote — aborting to avoid conflict."
             exit 1
           fi
@@ -243,6 +320,6 @@ jobs:
           git rebase origin/main
           git stash pop
 
-          git add upstream-state.json sequence.txt
+          git add upstream-state.json sequence.txt build-index.json
           git commit -m "Build ${{ needs.compute-tag.outputs.tag }}: track upstream state" || exit 0
           git push

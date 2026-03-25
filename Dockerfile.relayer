@@ -58,6 +58,16 @@ COPY --from=splitter /usr/local/bin/ /usr/local/bin/
 # Workspace files (tiktoken encodings, etc.)
 COPY --from=splitter /workspace/ /workspace/
 
+# sparkrun build provenance labels (injected by CI from build-metadata.yaml)
+ARG SPARKRUN_REPO_COMMIT=""
+ARG SPARKRUN_VLLM_HASH=""
+ARG SPARKRUN_FLASHINFER_HASH=""
+ARG SPARKRUN_BUILD_FLAGS=""
+LABEL dev.sparkrun.repo-commit="${SPARKRUN_REPO_COMMIT}" \
+      dev.sparkrun.vllm-hash="${SPARKRUN_VLLM_HASH}" \
+      dev.sparkrun.flashinfer-hash="${SPARKRUN_FLASHINFER_HASH}" \
+      dev.sparkrun.build-flags="${SPARKRUN_BUILD_FLAGS}"
+
 # Runtime environment (matches upstream Dockerfile lines 264-271)
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
