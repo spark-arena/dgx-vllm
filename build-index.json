@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "tag": "2026032504",
+    "variant": "nightly-tf5",
+    "repo_commit": "3dcd2a90c1dc668d6f9445eaf6c04ecd96489791",
+    "vllm_hash": "cd7643015",
+    "flashinfer_hash": "ede7a275",
+    "build_flags": "--tf5",
+    "pushed_at": "2026-03-25T23:53:59Z"
+  },
+  {
+    "tag": "2026032504",
+    "variant": "nightly",
+    "repo_commit": "3dcd2a90c1dc668d6f9445eaf6c04ecd96489791",
+    "vllm_hash": "cd7643015",
+    "flashinfer_hash": "ede7a275",
+    "build_flags": "",
+    "pushed_at": "2026-03-25T23:56:17Z"
+  }
+]
