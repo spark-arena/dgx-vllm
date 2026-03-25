@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "tag": "2026032502",
+    "variant": "nightly-tf5",
+    "repo_commit": "",
+    "vllm_hash": "",
+    "flashinfer_hash": "",
+    "build_flags": "--tf5",
+    "pushed_at": "2026-03-25T23:04:35Z"
+  },
+  {
+    "tag": "2026032502",
+    "variant": "nightly",
+    "repo_commit": "",
+    "vllm_hash": "",
+    "flashinfer_hash": "",
+    "build_flags": "",
+    "pushed_at": "2026-03-25T23:05:06Z"
+  }
+]
