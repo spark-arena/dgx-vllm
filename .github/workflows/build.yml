@@ -243,6 +243,74 @@ jobs:
           name: build-index-${{ matrix.name }}
           path: /tmp/build-index/${{ matrix.name }}.json
 
+      - name: Compute wheel manifest
+        if: matrix.name == 'nightly'
+        id: wheel-check
+        run: |
+          WHEELS_DIR="/tmp/spark-vllm-docker/wheels"
+          MANIFEST="{}"
+
+          if [ -d "$WHEELS_DIR" ] && ls "$WHEELS_DIR"/*.whl 1>/dev/null 2>&1; then
+            for whl in "$WHEELS_DIR"/*.whl; do
+              FNAME=$(basename "$whl")
+              HASH=$(sha256sum "$whl" | awk '{print $1}')
+              MANIFEST=$(echo "$MANIFEST" | jq --arg k "$FNAME" --arg v "$HASH" '. + {($k): $v}')
+            done
+          else
+            echo "WARNING: No wheel files found in $WHEELS_DIR"
+            echo "wheels_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Compare against stored state
+          STORED=$(jq -cS '.wheels' wheels-state.json 2>/dev/null || echo '{}')
+          CURRENT=$(echo "$MANIFEST" | jq -cS '.')
+
+          if [ "$STORED" = "$CURRENT" ]; then
+            echo "Wheels unchanged"
+            echo "wheels_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Wheels changed!"
+            echo "  stored:  $STORED"
+            echo "  current: $CURRENT"
+            echo "wheels_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Save manifest for later steps
+          echo "$MANIFEST" > /tmp/wheels-manifest.json
+
+      - name: Build and push wheels carrier
+        if: matrix.name == 'nightly' && steps.wheel-check.outputs.wheels_changed == 'true'
+        run: |
+          IMAGE="${{ env.IMAGE_BASE }}-nightly-wheels"
+          FULL_TAG="${{ needs.compute-tag.outputs.tag }}"
+          DATE_TAG="${{ needs.compute-tag.outputs.date_tag }}"
+
+          docker build -f $GITHUB_WORKSPACE/Dockerfile.wheels-carrier \
+            -t "${IMAGE}:${FULL_TAG}" \
+            /tmp/spark-vllm-docker/wheels/
+
+          docker tag "${IMAGE}:${FULL_TAG}" "${IMAGE}:${DATE_TAG}"
+          docker tag "${IMAGE}:${FULL_TAG}" "${IMAGE}:latest"
+          docker push "${IMAGE}:${FULL_TAG}"
+          docker push "${IMAGE}:${DATE_TAG}"
+          docker push "${IMAGE}:latest"
+
+      - name: Save wheels-state entry
+        if: matrix.name == 'nightly' && steps.wheel-check.outputs.wheels_changed == 'true'
+        run: |
+          MANIFEST=$(cat /tmp/wheels-manifest.json)
+          jq -n --argjson wheels "$MANIFEST" \
+                --arg last_tag "${{ needs.compute-tag.outputs.tag }}" \
+                '{wheels: $wheels, last_tag: $last_tag}' > /tmp/wheels-state-new.json
+
+      - name: Upload wheels-state entry
+        if: matrix.name == 'nightly' && steps.wheel-check.outputs.wheels_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-state-update
+          path: /tmp/wheels-state-new.json
+
   # ──────────────────────────────────────────────────────────────────────
   # Job 4: Update upstream state and sequence after successful builds
   # ──────────────────────────────────────────────────────────────────────
@@ -259,6 +327,22 @@ jobs:
           pattern: build-index-*
           path: /tmp/build-index-entries
           merge-multiple: true
+
+      - name: Download wheels-state update
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels-state-update
+          path: /tmp/wheels-state-entry
+        continue-on-error: true
+
+      - name: Update wheels-state.json
+        run: |
+          if [ -f /tmp/wheels-state-entry/wheels-state-new.json ]; then
+            cp /tmp/wheels-state-entry/wheels-state-new.json wheels-state.json
+            echo "Updated wheels-state.json"
+          else
+            echo "No wheels-state update artifact — skipping"
+          fi
 
       - name: Update build-index.json
         run: |
@@ -310,7 +394,7 @@ jobs:
           # Pull latest, but fail if someone else changed our state files
           git fetch origin main
           CHANGED_FILES=$(git diff --name-only HEAD..origin/main)
-          if echo "$CHANGED_FILES" | grep -qE '^(upstream-state\.json|sequence\.txt|build-index\.json)$'; then
+          if echo "$CHANGED_FILES" | grep -qE '^(upstream-state\.json|sequence\.txt|build-index\.json|wheels-state\.json)$'; then
             echo "ERROR: State files were modified on remote — aborting to avoid conflict."
             exit 1
           fi
@@ -320,6 +404,6 @@ jobs:
           git rebase origin/main
           git stash pop
 
-          git add upstream-state.json sequence.txt build-index.json
+          git add upstream-state.json sequence.txt build-index.json wheels-state.json
           git commit -m "Build ${{ needs.compute-tag.outputs.tag }}: track upstream state" || exit 0
           git push
