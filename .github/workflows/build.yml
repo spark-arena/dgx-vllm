@@ -133,10 +133,10 @@ jobs:
         include:
           - name: nightly
             suffix: ""
-            build_flags: "-j 2"
+            build_flags: ""
           - name: nightly-tf5
             suffix: "-tf5"
-            build_flags: "-j 2 --tf5"
+            build_flags: "--tf5"
     #          - name: nightly-mxfp4
     #            suffix: "-mxfp4"
     #            build_flags: "--exp-mxfp4"
