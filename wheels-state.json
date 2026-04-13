@@ -1,9 +1,9 @@
 {
   "wheels": {
-    "flashinfer_cubin-0.6.7-py3-none-any.whl": "6c0e169967c21269c4f1481d2b72a3be12c64a6a0e3d66688c3e64e28532235d",
-    "flashinfer_jit_cache-0.6.7-cp39-abi3-manylinux_2_28_aarch64.whl": "0ba4bef20a2c90017408ae157bb6805ee1d81f1984c44b0e6ad9c062b467a415",
-    "flashinfer_python-0.6.7-py3-none-any.whl": "740140c88b357bdf52a286f0f10a12b4cb3d558cf27ac5be1c9a0c5bb87b34b4",
-    "vllm-0.19.1rc1.dev219+g72ff142c3.d20260412.cu132-cp312-cp312-linux_aarch64.whl": "a1be82a3ba3ddf2f4d64cf64ae98f161943ece1be79ee830b43c53f4c5f2233c"
+    "flashinfer_cubin-0.6.7-py3-none-any.whl": "604e22b66780fd9c241a02c2b888008f8378bfa00dfbf7b5c299064661425c87",
+    "flashinfer_jit_cache-0.6.7-cp39-abi3-manylinux_2_28_aarch64.whl": "ceb66ef0411bc99f13bb50955fcec30b9dcf5bdd4f03faaa75c1fbb6b3ea67ad",
+    "flashinfer_python-0.6.7-py3-none-any.whl": "7272996355c8dcd03d2fac0e9db9e11db9e53db72589dacdf1d34edefeedee7d",
+    "vllm-0.19.1rc1.dev241+g4d042ed85.d20260413.cu132-cp312-cp312-linux_aarch64.whl": "c0e9849df76875b516cb9315b59f8affc6d36055fd5810d8e07eb7a19df115ec"
   },
-  "last_tag": "2026041201"
+  "last_tag": "2026041301"
 }
