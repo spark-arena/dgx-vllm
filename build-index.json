@@ -718,5 +718,23 @@
     "flashinfer_hash": "68d2b66a",
     "build_flags": "",
     "pushed_at": "2026-05-06T19:39:14Z"
+  },
+  {
+    "tag": "2026050801",
+    "variant": "nightly-tf5",
+    "repo_commit": "69ea62294fe909ea9432b00b2181a6fa0c4560db",
+    "vllm_hash": "2c6b59b80",
+    "flashinfer_hash": "059008c0",
+    "build_flags": "--tf5",
+    "pushed_at": "2026-05-09T05:14:50Z"
+  },
+  {
+    "tag": "2026050801",
+    "variant": "nightly",
+    "repo_commit": "69ea62294fe909ea9432b00b2181a6fa0c4560db",
+    "vllm_hash": "2c6b59b80",
+    "flashinfer_hash": "059008c0",
+    "build_flags": "",
+    "pushed_at": "2026-05-09T05:17:07Z"
   }
 ]
