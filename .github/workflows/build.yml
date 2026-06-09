@@ -158,8 +158,8 @@ jobs:
       - name: Detect upstream base image
         id: base
         run: |
-          # Extract the first FROM image from the upstream Dockerfile
-          BASE_IMAGE=$(grep -m1 '^FROM ' /tmp/spark-vllm-docker/Dockerfile | awk '{print $2}')
+          # Extract the CUDA_IMAGE from the upstream Dockerfile
+          BASE_IMAGE=$(grep -m1 '^ARG CUDA_IMAGE=' /tmp/spark-vllm-docker/Dockerfile | sed -E 's/^ARG CUDA_IMAGE=//')
           echo "image=${BASE_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "Detected base image: ${BASE_IMAGE}"
 
