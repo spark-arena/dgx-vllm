@@ -1,5 +1,5 @@
 {
-  "main_sha": "b51af15a280d28c2ad9096b3ef581524eddbd0e7",
+  "main_sha": "9bac1ea09b655266b19c49e0033d42b08617964d",
   "latest_release": "prebuilt-vllm-current",
   "known_tags": ["staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
 }
