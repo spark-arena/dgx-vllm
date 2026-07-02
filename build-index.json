@@ -1,23 +1,5 @@
 [
   {
-    "tag": "2026041201",
-    "variant": "nightly-tf5",
-    "repo_commit": "1ad85442aca601c399cd84fb9cc5bd9f540840c9",
-    "vllm_hash": "72ff142c3",
-    "flashinfer_hash": "a1166dc0",
-    "build_flags": "--tf5",
-    "pushed_at": "2026-04-13T04:21:41Z"
-  },
-  {
-    "tag": "2026041201",
-    "variant": "nightly",
-    "repo_commit": "1ad85442aca601c399cd84fb9cc5bd9f540840c9",
-    "vllm_hash": "72ff142c3",
-    "flashinfer_hash": "a1166dc0",
-    "build_flags": "",
-    "pushed_at": "2026-04-13T04:22:27Z"
-  },
-  {
     "tag": "2026041301",
     "variant": "nightly-tf5",
     "repo_commit": "c026c92bd0c1236f947ac212565b15a33ba1b4e7",
@@ -898,5 +880,23 @@
     "flashinfer_hash": "8fc7f079",
     "build_flags": "",
     "pushed_at": "2026-07-01T19:45:17Z"
+  },
+  {
+    "tag": "2026070201",
+    "variant": "nightly-tf5",
+    "repo_commit": "2556140046a391ca813fd1c4e7f27bc8280ab2b5",
+    "vllm_hash": "ec0ffaacc",
+    "flashinfer_hash": "bf92d49c",
+    "build_flags": "--tf5",
+    "pushed_at": "2026-07-02T19:28:14Z"
+  },
+  {
+    "tag": "2026070201",
+    "variant": "nightly",
+    "repo_commit": "2556140046a391ca813fd1c4e7f27bc8280ab2b5",
+    "vllm_hash": "ec0ffaacc",
+    "flashinfer_hash": "bf92d49c",
+    "build_flags": "",
+    "pushed_at": "2026-07-02T19:28:22Z"
   }
 ]
