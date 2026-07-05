@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+#
+# Label-injection layer for mirrored eugr/spark-vllm images.
+#
+# We mirror eugr's prebuilt image verbatim (its layer blobs are reused unchanged —
+# there is no RUN here) and only add our own provenance labels. Adding labels rewrites
+# the image config, so the resulting manifest digest INTENTIONALLY diverges from eugr's.
+# We record both digests in build-index.json for reverse lookup.
+ARG SOURCE_IMAGE
+FROM ${SOURCE_IMAGE}
+
+# sparkrun provenance (from eugr's /workspace/build-metadata.yaml, extracted by CI)
+ARG SPARKRUN_REPO_COMMIT=""
+ARG SPARKRUN_VLLM_HASH=""
+ARG SPARKRUN_VLLM_VERSION=""
+ARG SPARKRUN_FLASHINFER_HASH=""
+ARG SPARKRUN_BUILD_FLAGS=""
+# mirror source provenance (where we pulled it from)
+ARG SPARKRUN_SOURCE_IMAGE=""
+ARG SPARKRUN_SOURCE_DIGEST=""
+ARG SPARKRUN_SOURCE_TAG=""
+
+LABEL dev.sparkrun.repo-commit="${SPARKRUN_REPO_COMMIT}" \
+      dev.sparkrun.vllm-hash="${SPARKRUN_VLLM_HASH}" \
+      dev.sparkrun.vllm-version="${SPARKRUN_VLLM_VERSION}" \
+      dev.sparkrun.flashinfer-hash="${SPARKRUN_FLASHINFER_HASH}" \
+      dev.sparkrun.build-flags="${SPARKRUN_BUILD_FLAGS}" \
+      dev.sparkrun.source-image="${SPARKRUN_SOURCE_IMAGE}" \
+      dev.sparkrun.source-digest="${SPARKRUN_SOURCE_DIGEST}" \
+      dev.sparkrun.source-tag="${SPARKRUN_SOURCE_TAG}"
