@@ -1,23 +1,5 @@
 [
   {
-    "tag": "2026042504",
-    "variant": "nightly-tf5",
-    "repo_commit": "e3243bf55572d2281586dda313ed81838e4aa7bf",
-    "vllm_hash": "95995bbef",
-    "flashinfer_hash": "24c4aeed",
-    "build_flags": "--tf5",
-    "pushed_at": "2026-04-26T04:27:44Z"
-  },
-  {
-    "tag": "2026042504",
-    "variant": "nightly",
-    "repo_commit": "e3243bf55572d2281586dda313ed81838e4aa7bf",
-    "vllm_hash": "95995bbef",
-    "flashinfer_hash": "24c4aeed",
-    "build_flags": "",
-    "pushed_at": "2026-04-26T04:31:26Z"
-  },
-  {
     "tag": "2026042601",
     "variant": "nightly-tf5",
     "repo_commit": "e3243bf55572d2281586dda313ed81838e4aa7bf",
@@ -962,5 +944,31 @@
     "flashinfer_hash": "2c0d595fc5083ef00ecc022db07506cd500226bb",
     "build_flags": "",
     "pushed_at": "2026-07-10T20:03:59Z"
+  },
+  {
+    "tag": "2026071101",
+    "variant": "nightly-tf5",
+    "image_digest": "sha256:e0e9bc2392290c0655d98bd3d5e692e40736f0c6c21a88638a8c0e0ec9b45816",
+    "source_digest": "sha256:5c033d442a9a1c42428a235a56b80a522d4fa638bf59e40af06ac28863313595",
+    "source_tag": "nightly-20260710",
+    "repo_commit": "8a6a0071ace030567af47bda3db43adbaeaff71e",
+    "vllm_hash": "96bb8928613c252d0fd98fcff72e31ebdd8c723e",
+    "vllm_version": "0.25.1.dev24+g96bb89286.d20260710",
+    "flashinfer_hash": "2c0d595fc5083ef00ecc022db07506cd500226bb",
+    "build_flags": "",
+    "pushed_at": "2026-07-11T19:45:20Z"
+  },
+  {
+    "tag": "2026071101",
+    "variant": "nightly",
+    "image_digest": "sha256:e0e9bc2392290c0655d98bd3d5e692e40736f0c6c21a88638a8c0e0ec9b45816",
+    "source_digest": "sha256:5c033d442a9a1c42428a235a56b80a522d4fa638bf59e40af06ac28863313595",
+    "source_tag": "nightly-20260710",
+    "repo_commit": "8a6a0071ace030567af47bda3db43adbaeaff71e",
+    "vllm_hash": "96bb8928613c252d0fd98fcff72e31ebdd8c723e",
+    "vllm_version": "0.25.1.dev24+g96bb89286.d20260710",
+    "flashinfer_hash": "2c0d595fc5083ef00ecc022db07506cd500226bb",
+    "build_flags": "",
+    "pushed_at": "2026-07-11T19:45:20Z"
   }
 ]
