@@ -1,7 +1,7 @@
 {
-  "last_digest": "sha256:c411eb832cd1e44e3909f98a94ac0cc09ae5dd556770fe69cb7ada9db802d0b7",
-  "source_tag": "nightly-20260720",
-  "main_sha": "562ed293d2cd106efe147f4f27d8f2861f74067e",
+  "last_digest": "sha256:b1420ff7b3595efc5df7134683595ee8de3b1b650d8538da62e55d7a7951b2e0",
+  "source_tag": "nightly-20260721",
+  "main_sha": "9667dda434d4b568c906c43fd9e920c3d8c19356",
   "latest_release": "prebuilt-vllm-current",
   "known_tags": ["staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
 }
