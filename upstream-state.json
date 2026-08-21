@@ -1,9 +1,9 @@
 {
-  "last_digest": "sha256:aec1e582ef253c05fff571307f563159bc07220d0f1a76df3ffc3c5fde9fcb65",
-  "source_tag": "nightly-20260820",
+  "last_digest": "sha256:19d2158d320ca4c8704ebf56990de2a40b71055d6d7a5a6829a877db6a1e9125",
+  "source_tag": "nightly-20260821",
   "last_digest_b12x": "sha256:25fe41c2e85993b4e0534b3c72f68bf327c5d2726fbe1640cf6b220715d3b0e3",
   "source_tag_b12x": "nightly-20260815",
   "main_sha": "44774ef2c51ffb782ad0f35637b239be1e54c1d1",
   "latest_release": "prebuilt-vllm-current",
-  "known_tags": ["staging-current-1787313042","staging-current-1787313040","staging-current-1787226885","staging-current-1787140205","staging-current-1787080222","staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
+  "known_tags": ["staging-current-1787313040","staging-current-1787226885","staging-current-1787140205","staging-current-1787080222","staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
 }
