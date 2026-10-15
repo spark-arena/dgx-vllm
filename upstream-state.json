@@ -1,7 +1,7 @@
 {
   "last_digest": "sha256:4428520bf19839a81eaa9f0647e421713e7246bd9ca28669dd742cb09955ad86",
   "source_tag": "nightly-20261015",
-  "last_digest_b12x": "sha256:7115ce74cc8c02073e1eb8ba525acdee1b301a362b2912d2661db97d65ae3334",
+  "last_digest_b12x": "sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
   "source_tag_b12x": "nightly-20261015",
   "main_sha": "303b4a29a6bd390428d363358964ad298dc20625",
   "latest_release": "prebuilt-vllm-current",
