@@ -52,6 +52,7 @@ jobs:
 
       - name: Fetch current upstream state
         id: fetch
+        shell: bash  # Enable pipefail so registry errors cannot be hidden by jq.
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -61,8 +62,14 @@ jobs:
           inspect_source() {
             local image="$1" repo="$2" digest_key="$3" tag_key="$4"
 
+            # The runner is amd64, but an upstream index may contain only arm64.
+            # Skopeo still reports the top-level manifest digest for change detection.
             local digest
-            digest=$(skopeo inspect --no-tags "docker://${image}:latest" | jq -r '.Digest')
+            if ! digest=$(skopeo --override-os linux --override-arch arm64 inspect --no-tags "docker://${image}:latest" \
+              | jq -er '.Digest | select(type == "string") | select(test("^sha256:[0-9a-f]{64}$"))'); then
+              echo "::error::Failed to resolve a valid linux/arm64 digest for ${image}:latest"
+              return 1
+            fi
             echo "${digest_key}=${digest}" >> "$GITHUB_OUTPUT"
             echo "Current upstream digest (${image}): ${digest}"
 
