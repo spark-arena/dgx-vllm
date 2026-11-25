@@ -1,12 +1,12 @@
 {
   "wheels": {
-    "flashinfer_cubin-0.7.5-py3-none-any.whl": "1a9d0cc070f27d3d972d3297e297a6b5f2fd3a0019b18f9d363afa7ce29823e5",
-    "flashinfer_jit_cache-0.7.5-cp39-abi3-manylinux_2_28_aarch64.whl": "91c28922f4ae877d5f25caf3380332662bbec21f05ff1a965ddcc1bd28f9c682",
-    "flashinfer_jit_cache_sm103a-0.7.5-cp39-abi3-linux_aarch64.whl": "e0921f136a2b3d55b3fd887f9360d8b8c1b1de078fec56db29c7bf1913cd54d4",
-    "flashinfer_jit_cache_sm120a-0.7.5-cp39-abi3-linux_aarch64.whl": "529aeb6329e82b2bc2415570650cc48bd444875bfdc1ca42595fe547bfbdc7a1",
-    "flashinfer_jit_cache_sm121a-0.7.5-cp39-abi3-linux_aarch64.whl": "3fa71028d1f7f455e498fa8713fbb79c27809a99e4e06af199cc50f3746a933e",
-    "flashinfer_python-0.7.5-py3-none-any.whl": "956ff7fd57af4383b5d2f654ec39f4074c16c0868f11828ddea6ff1a2f1f0ea3",
-    "vllm-0.34.1rc1.dev37+g3e72879e5.d20261124.cu130-cp312-cp312-linux_aarch64.whl": "ebf5235b1b98f47c6e4fea897cf1a403555686272adf34e9f519857fe5cc2712"
+    "flashinfer_cubin-0.7.6-py3-none-any.whl": "6f494c6a7cfbe5079f154a2c1cb95e98fe5e29934e1faf6eaa12572fdac6177d",
+    "flashinfer_jit_cache-0.7.6-cp39-abi3-manylinux_2_28_aarch64.whl": "45990154bceca6ab906cd4dd723676e755c5adde2f2ff016fcfe61b166908b3d",
+    "flashinfer_jit_cache_sm103a-0.7.6-cp39-abi3-linux_aarch64.whl": "54f0b9c6a717c736331904b795d46d7ff2ba7891397d2ce99f2a96c1f7ea9ce4",
+    "flashinfer_jit_cache_sm120a-0.7.6-cp39-abi3-linux_aarch64.whl": "4f741ccc71a81494263d2a09c699feb43bd2d3eb7705f70b877596dc5e8a3a9a",
+    "flashinfer_jit_cache_sm121a-0.7.6-cp39-abi3-linux_aarch64.whl": "bb95345252e37d26553e573428dd3d2d04533bd8ea7df840fe5a6566b2bb94b3",
+    "flashinfer_python-0.7.6-py3-none-any.whl": "718144c12818c19ed3ac0e9d52ffaedaba343ba232370268387f43b229874856",
+    "vllm-0.34.1rc1.dev141+gb3fc38ca7.d20261125.cu130-cp312-cp312-linux_aarch64.whl": "24a6a88d501a9246927c41c223f6706c6d4c5e80dcf77e249f80c736b0f0691b"
   },
-  "last_tag": "2026112402"
+  "last_tag": "2026112501"
 }
