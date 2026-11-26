@@ -1,9 +1,9 @@
 {
-  "last_digest": "sha256:7ebf87e1fdd885a8d8e75b241b9994ecbada3136e9f68f3d0d84b96dd55a3658",
-  "source_tag": "nightly-20261125",
+  "last_digest": "sha256:7a10634ed294a9718f40d3b04282c8af7634eaf61cf608eccab372357f316db9",
+  "source_tag": "nightly-20261126",
   "last_digest_b12x": "sha256:19ab778dd57f019c44caf5df91a671cf688923d1ca9fa8ce92be0c9acb46d215",
   "source_tag_b12x": "nightly-20261102",
-  "main_sha": "b288d0947791c37c4db8e68b8709156f6a548814",
+  "main_sha": "65b5dae0bd6792908932cf6eaa6f898a838d0b19",
   "latest_release": "prebuilt-vllm-current",
-  "known_tags": ["staging-current-1795617400","staging-current-1795617180","staging-current-1795531053","staging-current-1795530701","staging-current-1795443889","staging-current-1795443515","staging-current-1795404256","staging-current-1795404176","staging-current-1795092940","staging-current-1795092759","staging-current-1795067826","staging-current-1795067632","staging-current-1790687448","staging-current-1787746223","staging-current-1787313040","staging-current-1787226885","staging-current-1787140205","staging-current-1787080222","staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
+  "known_tags": ["staging-current-1795703501","staging-current-1795703287","staging-current-1795617400","staging-current-1795617180","staging-current-1795531053","staging-current-1795530701","staging-current-1795443889","staging-current-1795443515","staging-current-1795404256","staging-current-1795404176","staging-current-1795092940","staging-current-1795092759","staging-current-1795067826","staging-current-1795067632","staging-current-1790687448","staging-current-1787746223","staging-current-1787313040","staging-current-1787226885","staging-current-1787140205","staging-current-1787080222","staging-current-1772875976","staging-current-1772696532","staging-current-1772696417","staging-current-1772668553","staging-current-1772668424","staging-current-1772642791","staging-current-1772642670","staging-current-1772609005","staging-current-1772608894","staging-current-1772608818","prebuilt-vllm-current","prebuilt-flashinfer-current"]
 }
